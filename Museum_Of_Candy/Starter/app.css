@@ -1,0 +1,30 @@
+body {
+    background-color: #f5d9d5;
+    font-family: Nunito, sans-serif;
+}
+
+body .container {
+    padding-top: 100px;
+}
+
+#mainNavbar .navbar-brand {
+    color: red;
+    font-size: 1.5rem;
+    font-weight: 100;
+}
+#mainNavbar .nav-link{
+    color:aliceblue;
+}
+#mainNavbar .nav-link:hover{
+    color:red;
+}
+
+#candy h2{
+    font-size: 3.5rem;
+    font-weight: 100;
+}
+@media (max-width: 1200px) {
+    #candy h2 {
+        font-size: 2.5rem;
+    }
+}
