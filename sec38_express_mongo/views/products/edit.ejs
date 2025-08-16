@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>Edit Product</h1>
+    <form action="/products/<%= product._id %>?_method=PUT" method="POST">
+        <label for="name">Product Name:</label>
+        <input type="text" id="name" name="name" value="<%= product.name %>" required>
+        <br>
+        <label for="price">Price:</label>
+        <input type="number" id="price" name="price" value="<%= product.price %>" required>
+        <br>
+        <!-- 選択式にする -->
+        <label for="category">Category:</label>
+        <select id="category" name="category" required>
+            <% for (let category of categories) {%>
+                <option value="<%= category %>" <%=category===product.category ? 'selected' : '' %>><%= category %>
+                </option>
+            <% }%>
+        </select>
+        <button type="submit">Update Product</button>
+    </form>
+    <a href="/products/<%= product._id %>">Back to Product Details</a>
+    <form action="/products/<%= product._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Are you sure you want to delete this product?');">
+        <button type="submit">Delete Product</button>
+    </form>
+</body>
+
+</html>
