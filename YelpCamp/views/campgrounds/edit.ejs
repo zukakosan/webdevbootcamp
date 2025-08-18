@@ -26,6 +26,11 @@
         </div>
         <button type="submit">Update Campground</button>
     </form>
+
+    <form action="/campgrounds/<%= ground._id %>?_method=DELETE" method="post">
+        <button type="submit">Delete Campground</button>
+    </form>
+
     <a href="/campgrounds">Back to List</a>
 </body>
 </html>
