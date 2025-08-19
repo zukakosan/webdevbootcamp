@@ -8,6 +8,7 @@ const morgan = require('morgan');
 // export されたモデルをインポート
 const Campground = require('./models/campground');
 const { render } = require('ejs');
+const ejsMate = require('ejs-mate');
 // connect to mongoose
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
     useNewUrlParser: true,
@@ -24,6 +25,9 @@ mongoose.connect('mongodb://localhost:27017/yelp-camp', {
 // middleware は、express の上に成り立つ仕組み
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+app.engine('ejs', ejsMate);
+
 // app.use() の内容は、リクエストが来るたびに毎回実行される
 app.use(express.urlencoded({ extended: true }));
 app.use(methodoverride('_method'));

@@ -1,20 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
+<% layout('layouts/boilerplate') %>
     <h1>Campgrounds List</h1>
     <a href="/campgrounds/new">Add New Campground</a>
-    <% grounds.forEach(ground => { %>
-        <div>
-            <h2><a href="/campgrounds/<%= ground._id %>"><%= ground.title %></a></h2>
-            <img src="<%= ground.image %>" alt="<%= ground.title %>">
-            <p><%= ground.description %></p>
-            <p><%= ground.location %></p>
-        </div>
-    <% }); %>
-</body>
-</html>
+    <div class="container">
+        <% grounds.forEach(ground=> { %>
+            <div class="card mb-3">
+                <div class="row">
+                    <div class="col-4">
+                        <img src="<%= ground.image %>" class="card-img-top" alt="<%= ground.title %>">
+                    </div>
+                    <div class="col-8">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <%= ground.title %>
+                            </h5>
+                            <p class="card-text">
+                                <%= ground.description %>
+                            </p>
+                            <a href="/campgrounds/<%= ground._id %>" class="btn btn-primary">View</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% }); %>
