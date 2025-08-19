@@ -1,36 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>Edit</h1>
-    <form action="/campgrounds/<%= ground._id %>?_method=PUT" method="post">
-        <div>
-            <label for="title">Title:</label>
-            <input type="text" id="title" name="campground[title]" value="<%= ground.title %>" required>
-        </div>
-        <div>
-            <label for="image">Image URL:</label>
-            <input type="text" id="image" name="campground[image]" value="<%= ground.image %>" required>
-        </div>
-        <div>
-            <label for="description">Description:</label>
-            <textarea id="description" name="campground[description]" required><%= ground.description %></textarea>
-        </div>
-        <div>
-            <label for="location">Location:</label>
-            <input type="text" id="location" name="campground[location]" value="<%= ground.location %>" required>
-        </div>
-        <button type="submit">Update Campground</button>
-    </form>
+<% layout('layouts/boilerplate') %>
 
-    <form action="/campgrounds/<%= ground._id %>?_method=DELETE" method="post">
-        <button type="submit">Delete Campground</button>
-    </form>
+<h1>Edit</h1>
+<form action="/campgrounds/<%= ground._id %>?_method=PUT" method="post">
+    <div>
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="campground[title]" value="<%= ground.title %>" required>
+    </div>
+    <div>
+        <label for="image">Image URL:</label>
+        <input type="text" id="image" name="campground[image]" value="<%= ground.image %>" required>
+    </div>
+    <div>
+        <label for="description">Description:</label>
+        <textarea id="description" name="campground[description]" required><%= ground.description %></textarea>
+    </div>
+    <div>
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="campground[location]" value="<%= ground.location %>" required>
+    </div>
+    <button type="submit">Update Campground</button>
+</form>
 
-    <a href="/campgrounds">Back to List</a>
-</body>
-</html>
+<form action="/campgrounds/<%= ground._id %>?_method=DELETE" method="post">
+    <button type="submit">Delete Campground</button>
+</form>
+
+<a href="/campgrounds">Back to List</a>
+<% layout('layouts/boilerplate') %>
