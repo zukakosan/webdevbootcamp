@@ -9,6 +9,9 @@ const morgan = require('morgan');
 const Campground = require('./models/campground');
 const { render } = require('ejs');
 const ejsMate = require('ejs-mate');
+
+const AppError = require('./apperror');
+
 // connect to mongoose
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
     useNewUrlParser: true,
@@ -31,7 +34,9 @@ app.engine('ejs', ejsMate);
 // app.use() の内容は、リクエストが来るたびに毎回実行される
 app.use(express.urlencoded({ extended: true }));
 app.use(methodoverride('_method'));
+// ログ用ミドルウェア
 app.use(morgan('dev'));
+
 app.use((req, res, next) => {
     console.log(req.method, req.path);
     // console.log('hello middleware');
@@ -56,7 +61,7 @@ const passwdCheck = (req, res, next) => {
     if (req.query.password === 'secret') {
         return next();
     }
-    return res.status(403).render('login');
+    throw new AppError('パスワードが間違っています。', 401);
 };
 
 
@@ -117,14 +122,48 @@ app.get('/secret', passwdCheck, (req, res) => {
     console.log('You found the secret!');
     res.render('secret');
 });
+
+// res を使わなくても、引数として指定する -> next が第3引数であるため、位置がずれてしまう
+app.get('/admin', (req, res, next) => {
+    if (req.query.role === "admin") {
+        return next();
+    }
+    throw new AppError('Permission Error', 403);
+}, (req, res) => {
+    console.log('admin page');
+    res.send('admin page');
+});
+
+app.get('/moge', (req, res) => {
+    moge();
+});
+
+
 // app.xxx がすべて終わった後に 404 用のミドルウェアを宣言
 // すべてのルートにマッチしなかった場合に実行される
+// Express では、NotFound はエラーとして扱われないため、最後に 404 用のルートハンドラを用意
 app.use((req, res) => {
     // status() で Status Code を設定できる
     // エラーページ用のテンプレートを指定して、render() で表示
     // Application Gateway とかで 404 ページを指定するときもこんなイメージなのかも
     res.status(404).render('errors/404');
 });
+
+// error 処理は、app.use, ルートハンドラの後に宣言する必要がある
+// app.use((err, req, res, next) => {
+//     console.error(err.stack);
+//     res.status(500).render('errors/500');
+//     next(err);
+// });
+
+// ルートハンドラやミドルウェアで Error が発生したときに、app.use(err, req, res, next)、つまりエラーハンドラが呼ばれる
+// err, req, res, next の4つの引数を渡してあげると、Expressはそれをエラーハンドラとして認識する
+app.use((err, req, res, next) => {
+    // default を 500 にしておく
+    const { status = 500 } = err;
+    res.status(status).send(err.message);
+});
+
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
