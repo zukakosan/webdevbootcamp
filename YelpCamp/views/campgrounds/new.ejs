@@ -1,23 +1,33 @@
 <% layout('layouts/boilerplate') %>
 
-<h1>Register</h1>
-<form action="/campgrounds" method="post">
-    <div>
-        <label for="title">Title:</label>
-        <input type="text" id="title" name="campground[title]" required>
-    </div>
-    <div>
-        <label for="image">Image URL:</label>
-        <input type="text" id="image" name="campground[image]" required>
-    </div>
-    <div>
-        <label for="description">Description:</label>
-        <textarea id="description" name="campground[description]" required></textarea>
-    </div>
-    <div>
-        <label for="location">Location:</label>
-        <input type="text" id="location" name="campground[location]" required>
-    </div>
-    <button type="submit">Create Campground</button>
-</form>
-<a href="/campgrounds">Back to List</a>
+    <h1>Register</h1>
+    <form action="/campgrounds" method="post">
+        <div class="row mb-3">
+            <div class="col">
+                <label for="title" class="form-label">Title:</label>
+                <input type="text" class="form-control" id="title" name="campground[title]" required>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-6">
+                <label for="image" class="form-label">Image URL:</label>
+                <input type="text" class="form-control" id="image" name="campground[image]" required>
+            </div>
+            <div class="col-6">
+                <label for="location" class="form-label">Location:</label>
+                <input type="text" class="form-control" id="location" name="campground[location]" required>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <label for="description" class="form-label">Description:</label>
+                <textarea class="form-control" id="description" name="campground[description]" rows="6"></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">Create Campground</button>
+                <button class="btn btn-dark"><a href="/campgrounds">Back to List</a></button>
+            </div>
+        </div>
+    </form>
