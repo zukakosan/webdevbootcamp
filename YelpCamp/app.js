@@ -9,6 +9,9 @@ const morgan = require('morgan');
 const Campground = require('./models/campground');
 const { render } = require('ejs');
 const ejsMate = require('ejs-mate');
+const catchAsync = require('./utils/catchAsync');
+const ExpressError = require('./utils/ExpressError');
+const { campgroundSchema } = require('./schemas');
 
 const AppError = require('./apperror');
 
@@ -23,6 +26,19 @@ mongoose.connect('mongodb://localhost:27017/yelp-camp', {
     console.error('MongoDB connection error:', err);
 });
 
+// バリデーション用のミドルウェア
+const validateCampground = (req, res) => {
+    const { error } = campgroundSchema.validate(req.body);
+    console.log(error);
+    if (error) {
+        const msg = error.details.map(el => el.message).join(',');
+        // catchAsync で try-catch するため、エラーを throw をするだけで、catchAsync の catch 節に飛ぶ
+        // つまり、next() を呼ぶ必要はない
+        throw new ExpressError(msg, 400);
+    } else {
+        next();
+    }
+};
 // app は express のインスタンス
 // その app を使って middleware
 // middleware は、express の上に成り立つ仕組み
@@ -81,41 +97,42 @@ app.get('/campgrounds/new', (req, res) => {
     res.render('campgrounds/new');
 });
 
-app.get('/campgrounds/:id/edit', async (req, res) => {
+app.get('/campgrounds/:id/edit', catchAsync(async (req, res) => {
     const ground = await Campground.findById(req.params.id);
     res.render('campgrounds/edit', { ground });
-});
+}));
 
-app.delete('/campgrounds/:id', async (req, res) => {
+app.delete('/campgrounds/:id', catchAsync(async (req, res) => {
     const result = await Campground.findByIdAndDelete(req.params.id);
     console.log(result);
     res.redirect('/campgrounds');
-});
+}));
 
-app.put('/campgrounds/:id', async (req, res) => {
+app.put('/campgrounds/:id',validateCampground, catchAsync(async (req, res) => {
     // ejs の form の name 属性で name=campground[title] のように指定中のため、req.body.campground でアクセス可能
     // そうしない場合、title: req.body.title のようにアクセスする必要がある
     result = await Campground.findByIdAndUpdate(req.params.id, req.body.campground, { new: true, runValidators: true });
     console.log(result);
     res.redirect(`/campgrounds/${req.params.id}`);
-});
+}));
 
-app.get('/campgrounds/:id', async (req, res) => {
+app.get('/campgrounds/:id', catchAsync(async (req, res) => {
     const ground = await Campground.findById(req.params.id);
     res.render('campgrounds/show', { ground });
-});
+}));
 
-app.get('/campgrounds', async (req, res) => {
+app.get('/campgrounds', catchAsync(async (req, res) => {
     const grounds = await Campground.find();
     res.render('campgrounds/index', { grounds });
-});
+}));
 
-app.post('/campgrounds', async (req, res) => {
+app.post('/campgrounds', validateCampground, catchAsync(async (req, res) => {
     const campground = new Campground(req.body.campground);
     result = await campground.save();
-    console.log(result);
+    // console.log(result);
     res.redirect('/campgrounds');
-});
+})
+);
 
 // passwdCheck ミドルウェアの next() は、ルートハンドラの Callback に繋がる
 app.get('/secret', passwdCheck, (req, res) => {
@@ -142,11 +159,11 @@ app.get('/moge', (req, res) => {
 // app.xxx がすべて終わった後に 404 用のミドルウェアを宣言
 // すべてのルートにマッチしなかった場合に実行される
 // Express では、NotFound はエラーとして扱われないため、最後に 404 用のルートハンドラを用意
-app.use((req, res) => {
+app.use((req, res, next) => {
     // status() で Status Code を設定できる
     // エラーページ用のテンプレートを指定して、render() で表示
     // Application Gateway とかで 404 ページを指定するときもこんなイメージなのかも
-    res.status(404).render('errors/404');
+    next(new ExpressError('ページが見つかりません', 404));
 });
 
 // error 処理は、app.use, ルートハンドラの後に宣言する必要がある
@@ -156,12 +173,14 @@ app.use((req, res) => {
 //     next(err);
 // });
 
+
+
 // ルートハンドラやミドルウェアで Error が発生したときに、app.use(err, req, res, next)、つまりエラーハンドラが呼ばれる
 // err, req, res, next の4つの引数を渡してあげると、Expressはそれをエラーハンドラとして認識する
 app.use((err, req, res, next) => {
     // default を 500 にしておく
-    const { status = 500 } = err;
-    res.status(status).send(err.message);
+    const { status = 500, message = 'Something wrong has happened' } = err;
+    res.status(status).render('error', { err });
 });
 
 
