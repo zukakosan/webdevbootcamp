@@ -6,12 +6,15 @@ const mongoose = require('mongoose');
 const methodoverride = require('method-override');
 const morgan = require('morgan');
 // export されたモデルをインポート
-const Campground = require('./models/campground');
 const { render } = require('ejs');
 const ejsMate = require('ejs-mate');
 const catchAsync = require('./utils/catchAsync');
 const ExpressError = require('./utils/ExpressError');
-const { campgroundSchema } = require('./schemas');
+
+const Campground = require('./models/campground');
+const Review = require('./models/review');
+
+const { campgroundSchema, reviewSchema } = require('./schemas');
 
 const AppError = require('./apperror');
 
@@ -27,13 +30,24 @@ mongoose.connect('mongodb://localhost:27017/yelp-camp', {
 });
 
 // バリデーション用のミドルウェア
-const validateCampground = (req, res) => {
+const validateCampground = (req, res, next) => {
     const { error } = campgroundSchema.validate(req.body);
     console.log(error);
     if (error) {
         const msg = error.details.map(el => el.message).join(',');
         // catchAsync で try-catch するため、エラーを throw をするだけで、catchAsync の catch 節に飛ぶ
         // つまり、next() を呼ぶ必要はない
+        throw new ExpressError(msg, 400);
+    } else {
+        next();
+    }
+};
+
+const validateReview = (req, res, next) => {
+    const { error } = reviewSchema.validate(req.body);
+    console.log(error);
+    if (error) {
+        const msg = error.details.map(el => el.message).join(',');
         throw new ExpressError(msg, 400);
     } else {
         next();
@@ -105,6 +119,9 @@ app.get('/campgrounds/:id/edit', catchAsync(async (req, res) => {
 app.delete('/campgrounds/:id', catchAsync(async (req, res) => {
     const result = await Campground.findByIdAndDelete(req.params.id);
     console.log(result);
+    if(result.reviews.length>0){
+        await Review.deleteMany({_id:{$in:result.reviews}});
+    }
     res.redirect('/campgrounds');
 }));
 
@@ -117,7 +134,7 @@ app.put('/campgrounds/:id',validateCampground, catchAsync(async (req, res) => {
 }));
 
 app.get('/campgrounds/:id', catchAsync(async (req, res) => {
-    const ground = await Campground.findById(req.params.id);
+    const ground = await Campground.findById(req.params.id).populate('reviews');
     res.render('campgrounds/show', { ground });
 }));
 
@@ -125,6 +142,24 @@ app.get('/campgrounds', catchAsync(async (req, res) => {
     const grounds = await Campground.find();
     res.render('campgrounds/index', { grounds });
 }));
+
+app.delete('/campgrounds/:campgroundId/reviews/:reviewId', catchAsync(async (req, res) => {
+    const { campgroundId, reviewId } = req.params;
+    await Review.findByIdAndDelete(reviewId);
+    // $pull 
+    await Campground.findByIdAndUpdate(campgroundId, { $pull: { reviews: reviewId } });
+    res.redirect(`/campgrounds/${campgroundId}`);
+}));
+
+app.post('/campgrounds/:id/reviews', validateReview, catchAsync(async (req, res) => {
+    const campground = await Campground.findById(req.params.id);
+    const review = new Review(req.body.review);
+    campground.reviews.push(review);
+    await review.save();
+    await campground.save();
+    res.redirect(`/campgrounds/${campground._id}`);
+}));
+
 
 app.post('/campgrounds', validateCampground, catchAsync(async (req, res) => {
     const campground = new Campground(req.body.campground);
