@@ -1,0 +1,52 @@
+<% layout('layouts/boilerplate') %>
+
+    <h1>Edit</h1>
+    <form action="/campgrounds/<%= ground._id %>?_method=PUT" method="post" class="validated-form" novalidate>
+        <div class="row mb-3">
+            <div class="col">
+                <label for="title" class="form-label">Title:</label>
+                <input type="text" class="form-control" id="title" name="campground[title]" value="<%= ground.title %>"
+                    required>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <label for="image" class="form-label">Image URL:</label>
+                <input type="text" class="form-control" id="image" name="campground[image]" value="<%= ground.image %>"
+                    required>
+            </div>
+            <div class="col">
+                <label for="location" class="form-label">Location:</label>
+                <input type="text" class="form-control" id="location" name="campground[location]"
+                    value="<%= ground.location %>" required>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <label for="price" class="form-label">Price:</label>
+                <input type="number" class="form-control" id="price" name="campground[price]" value="<%= ground.price %>"
+                    required>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <label for="description" class="form-label">Description:</label>
+                <textarea class="form-control" id="description" name="campground[description]"
+                    rows="6"><%= ground.description %></textarea>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">Update</button>
+                <button class="btn btn-dark"><a href="/campgrounds">Back to List</a></button>
+            </div>
+        </div>
+    </form>
+
+    <form action="/campgrounds/<%= ground._id %>?_method=DELETE" method="post">
+        <button type="submit">Delete Campground</button>
+    </form>
+
+    <a href="/campgrounds">Back to List</a>
+    <% layout('layouts/boilerplate') %>
