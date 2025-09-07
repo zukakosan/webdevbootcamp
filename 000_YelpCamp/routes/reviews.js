@@ -5,6 +5,7 @@ const catchAsync = require('../utils/catchAsync');
 const ExpressError = require('../utils/ExpressError');
 const Campground = require('../models/campground');
 const Review = require('../models/review');
+const { isLoggedIn } = require('../middleware');
 
 const validateReview = (req, res, next) => {
     const { error } = reviewSchema.validate(req.body);
@@ -16,7 +17,18 @@ const validateReview = (req, res, next) => {
         next();
     }
 };
-router.delete('/:reviewId', catchAsync(async (req, res) => {
+
+const isReviewAuthor = async (req, res, next) => {
+    const { id, reviewId } = req.params;
+    const review = await Review.findById(reviewId);
+    if (!review.author.equals(req.user._id)) {
+        req.flash('error', 'あなたに権限がありません');
+        return res.redirect(`/campgrounds/${id}`);
+    }
+    next();
+};
+
+router.delete('/:reviewId', isLoggedIn, isReviewAuthor, catchAsync(async (req, res) => {
     const { campgroundId, reviewId } = req.params;
     await Review.findByIdAndDelete(reviewId);
     // $pull 
@@ -25,9 +37,10 @@ router.delete('/:reviewId', catchAsync(async (req, res) => {
     res.redirect(`/campgrounds/${campgroundId}`);
 }));
 
-router.post('/', validateReview, catchAsync(async (req, res) => {
+router.post('/', validateReview, isLoggedIn, catchAsync(async (req, res) => {
     const campground = await Campground.findById(req.params.id);
     const review = new Review(req.body.review);
+    review.author = req.user._id;
     campground.reviews.push(review);
     await review.save();
     await campground.save();

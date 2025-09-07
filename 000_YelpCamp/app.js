@@ -15,7 +15,10 @@ const expressSession = require('express-session');
 const campgroundRoutes = require('./routes/campgrounds');
 const reviewRoutes = require('./routes/reviews');
 const flash = require('connect-flash');
-
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const User = require('./models/user');
+const userRoutes = require('./routes/users');
 
 // connect to mongoose
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
@@ -55,11 +58,21 @@ const sessionConfig = {
 app.use(expressSession(sessionConfig));
 app.use(flash());
 
+// passport は express-session の後に宣言する必要がある
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+// ユーザ情報をどうやってセッションに出し入れするか
+// serializeUser を指定することで、ID 情報をセッションに保存する
+// deserializeUser で、セッションから ID を取り出して、ユーザ情報を復元する
+// これらのメソッドは、passport-local-mongoose が User モデルに追加してくれる
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 app.use((req,res,next)=>{
-    // res.locals 一回のリクエスト内でのみ使える変数
+    res.locals.currentUser = req.user;
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
-    console.log(res.locals.success);
     next();
 })
 
@@ -67,6 +80,7 @@ app.use((req,res,next)=>{
 // mount routes after session/flash and res.locals are configured
 app.use('/campgrounds', campgroundRoutes);
 app.use('/campgrounds/:id/reviews', reviewRoutes);
+app.use('/', userRoutes);
 
 app.use((req, res, next) => {
     console.log(req.method, req.path);
@@ -87,12 +101,6 @@ app.use((req, res, next) => {
 //     }
 //     return res.status(403).render('login');
 // });
-app.use((req,res,next)=>{
-    // res.locals 一回のリクエスト内でのみ使える変数
-    res.locals.success = req.flash('success');
-    console.log(success);
-    next();
-});
 
 const passwdCheck = (req, res, next) => {
     if (req.query.password === 'secret') {
@@ -107,6 +115,15 @@ const passwdCheck = (req, res, next) => {
 app.use('/campgrounds', (req, res, next) => {
     console.log('Request made to /campgrounds');
     next();
+});
+
+
+app.get('/sampleuserregister', async(req,res)=>{
+    const user = new User({username:'moge', email:'moge@example.com'});
+    // 自動的に password を hash 化して作ってくれる -> それを mongo へ投げればいい
+    // ここでは、Pbkdf2 で hash 化してくれている
+    const registeredUser = await User.register(user, 'password');
+    res.send(registeredUser);
 });
 
 // app に対してルーティングを設定
