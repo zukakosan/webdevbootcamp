@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const catchAsync = require('../utils/catchAsync');
 const passport = require('passport');
 const {storeReturnTo} = require('../middleware');
+const users = require('../controllers/users');
 
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
     useNewUrlParser: true,
@@ -18,55 +19,32 @@ mongoose.connect('mongodb://localhost:27017/yelp-camp', {
 
 router.use(express.urlencoded({ extended: true }));
 
-router.get('/register', (req, res) => {
-    res.render('users/register');
-});
+router.route('/register')
+    .get(users.renderRegisterForm)
+    .post(catchAsync(users.registerUser));
 
-router.post('/register', async (req, res) => {
-    try {
-        const { username, email, password } = req.body;
-        const user = new User({ username: username, email: email });
-        // 自動的に password を hash 化して作ってくれる -> それを mongo へ投げればいい
-        // ここでは、Pbkdf2 で hash 化してくれている
-        const registeredUser = await User.register(user, password);
-        result = await registeredUser.save();
-        req.flash('success', 'Welcome to YelpCamp!');
-        console.log(registeredUser);
-        req.login(registeredUser, err => {
-            if (err) return next(err);
-            res.redirect('/campgrounds');
-        });
-    } catch (e) {
-        req.flash('error', e.message);
-        console.error(e);
-        res.redirect('/register');
-    }
-});
+router.route('/login')
+    .get(users.renderLoginForm)
+    .post(storeReturnTo, passport.authenticate('local', {
+        failureRedirect: '/login',
+        failureFlash: true
+    }), users.redirectAfterLogin);
+    
+router.get('/logout', users.renderLogout);
 
-router.get('/login', (req, res) => {
-    res.render('users/login');
-});
 
-// passport.authenticate() ミドルウェアを使ってログイン処理
-// 自動的に username と password を req.body から探してくれる
-router.post('/login', storeReturnTo, passport.authenticate('local', {
-    failureRedirect: '/login',
-    failureFlash: true
-}), (req, res) => {
-    req.flash('success', 'Welcome back!');
-    const redirectUrl = res.locals.returnTo || '/campgrounds';
-    res.redirect(redirectUrl);
-});
+// router.get('/register', users.renderRegisterForm);
 
-router.get('/logout', (req, res) => {
-    req.logout((err) => {
-        if (err) {
-            return next(err);
-        }
-        // ログアウト後の処理（例: リダイレクト）
-        req.flash('success', "Goodbye!");
-        res.redirect('/');
-    });
-});
+// router.post('/register', users.registerUser);
+
+// router.get('/login', users.renderLoginForm);
+
+// // passport.authenticate() ミドルウェアを使ってログイン処理
+// // 自動的に username と password を req.body から探してくれる
+// router.post('/login', storeReturnTo, passport.authenticate('local', {
+//     failureRedirect: '/login',
+//     failureFlash: true
+// }), users.redirectAfterLogin);
+
 
 module.exports = router;
