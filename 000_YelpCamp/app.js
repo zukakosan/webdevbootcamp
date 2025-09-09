@@ -38,6 +38,9 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.static(path.join(__dirname, 'public')));
+// uploads/xxxxxxx というパスでアクセスできるように公開する
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.engine('ejs', ejsMate);
 
 // app.use() の内容は、リクエストが来るたびに毎回実行される
