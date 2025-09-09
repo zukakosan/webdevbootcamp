@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Review = require('./review');
-const { ref } = require('joi');
+const { ref, required } = require('joi');
 const Schema = mongoose.Schema;
 
 const campgroundSchema = new Schema({
@@ -10,7 +10,7 @@ const campgroundSchema = new Schema({
   },
   image: {
     type: String,
-    required: [true, '画像URLは必須です']
+    required: false
   },
   description: {
     type: String,

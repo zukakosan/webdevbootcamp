@@ -1,7 +1,7 @@
 <% layout('layouts/boilerplate') %>
 
     <h1>Edit</h1>
-    <form action="/campgrounds/<%= ground._id %>?_method=PUT" method="post" class="validated-form" novalidate>
+    <form action="/campgrounds/<%= ground._id %>?_method=PUT" method="post" class="validated-form" novalidate enctype="multipart/form-data">
         <div class="row mb-3">
             <div class="col">
                 <label for="title" class="form-label">Title:</label>
@@ -10,10 +10,14 @@
             </div>
         </div>
         <div class="row mb-3">
+            <div class="col mb-3">
+                <label for="image" class="form-label">Image:</label>
+                <input type="file" class="form-control" id="image" name="image" value="<%= ground.image %>">
+            </div>
+            <div class="col mb-3"><img src="<%= ground.image %>"></div>
             <div class="col">
-                <label for="image" class="form-label">Image URL:</label>
-                <input type="text" class="form-control" id="image" name="campground[image]" value="<%= ground.image %>"
-                    required>
+                <label for="deleteImage">削除しますか</label>
+                <input type="checkbox" id="deleteImage" name="deleteImage">
             </div>
             <div class="col">
                 <label for="location" class="form-label">Location:</label>

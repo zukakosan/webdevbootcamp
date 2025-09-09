@@ -48,9 +48,33 @@ module.exports.updateCampground = async (req, res) => {
     // そうしない場合、title: req.body.title のようにアクセスする必要がある
     // Postman 等からの API コールから保護したい
     // 更新前に、リクエスト送信者と投稿の投稿者が同じかどうかをチェックするため、FindしてからUpdateをする
+    const { title, price, location, description } = req.body.campground;
     const campground = await Campground.findById(req.params.id);
-    result = await Campground.findByIdAndUpdate(req.params.id, req.body.campground, { new: true, runValidators: true });
+    console.log(campground);
+    console.log(req.body);
+    campground.title = title;
+    campground.location = location;
+    campground.price = price;
+    campground.description = description;
+    // 画像削除チェック
+    if (req.body.deleteImage === 'on') {
+        campground.image = '';
+    }
+
+    // 新しい画像がアップロードされていれば更新（multer等でreq.fileがセットされる）
+    if (req.file) {
+        // 本来は、更新前の画像を upload フォルダから削除する処理を入れる
+        
+        // Windows環境だと req.file.path のパス区切りが \ になるため、/ になるように処理しておく
+        campground.image = '/uploads/' + req.file.filename;
+    } else if (image) {
+        // 画像フィールドがフォームで送信されていれば（既存画像のまま）
+        campground.image = image;
+    }
+    // result = await Campground.findByIdAndUpdate(req.params.id, req.body.campground, { new: true, runValidators: true });
+    result = await campground.save();
     console.log(result);
+
     req.flash('success', 'キャンプ場を更新しました');
     res.redirect(`/campgrounds/${req.params.id}`);
 }
