@@ -10,7 +10,9 @@
 <body>
     <h1></h1>Error</h1>
     <p><%= err.message %></p>
+    <% if(process.env.NODE_ENV !== 'production') {%>
     <p><%= err.stack %></p>
+    <% } %>
 
 </body>
 </html>

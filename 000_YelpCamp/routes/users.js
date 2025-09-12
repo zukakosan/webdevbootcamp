@@ -7,15 +7,15 @@ const passport = require('passport');
 const {storeReturnTo} = require('../middleware');
 const users = require('../controllers/users');
 
-mongoose.connect('mongodb://localhost:27017/yelp-camp', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true
-}).then(() => {
-    console.log('MongoDB connected');
-}).catch(err => {
-    console.error('MongoDB connection error:', err);
-});
+// mongoose.connect('mongodb://localhost:27017/yelp-camp', {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true,
+//     useCreateIndex: true
+// }).then(() => {
+//     console.log('MongoDB connected');
+// }).catch(err => {
+//     console.error('MongoDB connection error:', err);
+// });
 
 router.use(express.urlencoded({ extended: true }));
 

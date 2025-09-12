@@ -1,3 +1,5 @@
+require('dotenv').config();
+console.log(process.env.NODE_ENV);
 // node.js で web app を作成するための実績のあるフレームワークが express
 const express = require('express');
 const app = express();
@@ -22,7 +24,10 @@ const userRoutes = require('./routes/users');
 const mongoSanitize = require('express-mongo-sanitize');
 const bodyParser = require('body-parser');
 // connect to mongoose
-mongoose.connect('mongodb://localhost:27017/yelp-camp', {
+//'mongodb://localhost:27017/yelp-camp'
+const dbUrl = process.env.DB_URL;
+console.log(dbUrl);
+mongoose.connect(dbUrl, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true
