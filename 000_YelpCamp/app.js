@@ -12,7 +12,9 @@ const { render } = require('ejs');
 const ejsMate = require('ejs-mate');
 const ExpressError = require('./utils/ExpressError');
 const AppError = require('./apperror');
+
 const expressSession = require('express-session');
+const connectMongo = require('connect-mongo');
 
 const campgroundRoutes = require('./routes/campgrounds');
 const reviewRoutes = require('./routes/reviews');
@@ -21,11 +23,11 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const User = require('./models/user');
 const userRoutes = require('./routes/users');
-const mongoSanitize = require('express-mongo-sanitize');
-const bodyParser = require('body-parser');
+
+
 // connect to mongoose
-//'mongodb://localhost:27017/yelp-camp'
-const dbUrl = process.env.DB_URL;
+const dbUrl = 'mongodb://localhost:27017/yelp-camp'
+// const dbUrl = process.env.DB_URL;
 console.log(dbUrl);
 mongoose.connect(dbUrl, {
     useNewUrlParser: true,
@@ -58,7 +60,17 @@ app.use(express.json());
 // app.use(mongoSanitize({
 //     replaceWith: '_'
 // }));
+
+const MongoStore = connectMongo.create({
+    mongoUrl: dbUrl,
+    touchAfter: 24 * 3600, // 24 時間に1回だけ更新
+    crypto: {
+        secret: 'mysecret'
+    }
+});
+
 const sessionConfig = {
+    store: MongoStore,
     name: 'sessionid',
     secret: 'mysecret',
     resave: false,
@@ -194,7 +206,7 @@ app.use((err, req, res, next) => {
     res.status(status).render('error', { err });
 });
 
-
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
